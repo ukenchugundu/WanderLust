@@ -1,0 +1,30 @@
+<% layout("/layouts/boilerplate") %>
+<body>
+    <h3>Edit Listing</h3>
+
+     <form method="POST" action="/listings/<%= listing._id %>?_method=PUT">
+        <label for="title">Title:</label>
+        <input type="text" id="title" name="title" value="<%= listing.title %>"  required><br><br>
+
+        <label for="location">Location:</label>
+        <input type="text" id="location" name="location" value="<%= listing.location %>" required><br><br>
+
+        <label for="description">Description:</label><br>
+        <textarea id="description" name="description" rows="4" cols="50" required><%= listing.description %></textarea><br><br>
+
+        <label for="price">Price (in INR):</label>
+        <input type="number" id="price" name="price" value="<%= listing.price %>" required><br><br>
+
+        <label for="country">Country:</label>
+        <input type="text" id="country" name="country" value="<%= listing.country %>" required><br><br>
+
+        <label for="image">Image URL:</label>
+        <input type="url" id="image" name="image" value="<%= listing.image && listing.image.url ? listing.image.url : '' %>"><br><br>
+
+        <button type="submit">Update Listing</button>
+    </form>
+    <br>
+    <a href="/listings">Back to Listings</a> <br> <br>
+
+
+</body>
