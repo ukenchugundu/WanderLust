@@ -1,15 +1,33 @@
 <% layout("/layouts/boilerplate") %>
-<body>
-    <h3>All Listings</h3>
-    <form method="GET"  action="/listings/new">
+
+    <body>
+        <!-- <h3>All Listings</h3> -->
+        <!-- <form method="GET"  action="/listings/new">
         <button>Create New Listing</button>
-    </form>
-    <ul>
-        <%  for(let listing of alllistings) { %>
-            <li><a href="/listings/<%= listing._id %>"><%= listing.title %></a></li>
-        <% } %>
-         <%  for(let listing of alllistings) { %>
-            <li><a href="/listings/<%= listing._id %>"><%= listing.title %></a></li>
-        <% } %>
-    </ul>
-</body>
+    </form> -->
+
+        <div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1 g-4">
+            <% for(let listing of alllistings) { %>
+                <% const imageUrl=listing.image && listing.image.url ? listing.image.url
+                    : "https://images.unsplash.com/photo-1580587772039-8f66e15d3243?ixlib=rb-4.0.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80"
+                    ; %>
+                    <a href="/listings/<%= listing._id %>" class="text-decoration-none">
+                        <div class="card" style="width: 20rem;">
+                            <img src="<%= imageUrl %>" class="card-img-top" alt="listings_images"
+                                onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1580587772039-8f66e15d3243?ixlib=rb-4.0.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80';">
+                                <div class="card-img-overlay"></div>
+                            <div class="card-body">
+                                <p class="card-text">
+                                    <%= listing.title %>
+                                </p>
+                                <p class="card-text">Price: &#8377; <%= listing.price.toLocaleString("en-IN") %> / night
+                                </p>
+
+                            </div>
+
+                        </div>
+                    </a>
+                    <% } %>
+        </div>
+
+    </body>

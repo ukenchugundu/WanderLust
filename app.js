@@ -3,10 +3,12 @@ const app = express();
 const mongoose = require('mongoose');
 const listing = require('./models/listings');
 const path = require('path');
-const mongoUrl = process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/Wanderlust';
-const port = process.env.PORT || 3000;
 const methodoverride = require('method-override');
 const ejs = require('ejs-mate');
+
+const mongoUrl = process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/Wanderlust';
+const port = process.env.PORT || 3000;
+const defaultImageUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRI69IS84PGeSJDInvyhd8IPU8_1v3iQU0DeA&s';
 
 async function main() {
   await mongoose.connect(mongoUrl);
@@ -81,14 +83,18 @@ app.get('/listing/:id', (req,res) => {
 
 app.post('/listings', async (req,res) => {
   let {title, description, price, location, country, image} = req.body;
-  let newListing = new listing({
+  let newListingData = {
     title,
     description,
     price,
     location,
     country,
-    image : image && image.trim() ? { url: image.trim() } : undefined,
-  });
+    image: {
+      url: image && image.trim() ? image.trim() : defaultImageUrl,
+    },
+  };
+
+  let newListing = new listing(newListingData);
   // console.log(newListing);
   await newListing.save();
   res.redirect('/listings');
@@ -109,8 +115,11 @@ app.put('/listings/:id', async (req, res) => {
     price,
     location,
     country,
-    image: image && image.trim() ? { url: image.trim() } : undefined,
+    image: {
+      url: image && image.trim() ? image.trim() : defaultImageUrl,
+    },
   };
+
   await listing.findByIdAndUpdate(id, updatedListing);
   res.redirect(`/listings/${id}`);
 })
@@ -122,4 +131,3 @@ app.delete('/listings/:id', async (req, res) => {
   console.log(`Deleted listing ${deletedListing}`);
   res.redirect('/listings');
 })
-

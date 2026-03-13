@@ -1,26 +1,35 @@
 <% layout("/layouts/boilerplate") %>
 <body>
-    <h3>Listing Details</h3>
-    <% const imageUrl = listing.image && listing.image.url ? listing.image.url : ""; %>
-  <ul>
-    <li>Title: <%= listing.title %></li>
-    <li>Location: <%= listing.location %></li>
-    <li>Description: <%= listing.description %></li>
-    <li>Price: &#8377; <%= listing.price.toLocaleString("en-IN") %></li>
-    <!-- <% if (imageUrl) { %>
-      <li>
-        <img src="<%= imageUrl %>" alt="<%= listing.title %>" style="width: 300px; height: auto;">
-      </li> -->
-    <% } %>
-    <li>Country: <%= listing.country %></li>
-  </ul>
-<br>
-<a href="/listings">Back to Listings</a> <br> <br>
-<a href="/listings/<%= listing._id %>/edit">Edit Listing</a> <br> <br>
+    <% const imageUrl = listing.image && listing.image.url
+        ? listing.image.url
+        : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRI69IS84PGeSJDInvyhd8IPU8_1v3iQU0DeA&s"; %>
 
-<form method="POST" action="/listings/<%=listing._id %>?_method=DELETE">
-    <button>Delete Listing</button>
-</form>
+    <div class="show-card-wrapper">
+        <h3 class="show-heading"><%= listing.title %></h3>
+
+        <div class="card show-card">
+            <img
+                src="<%= imageUrl %>"
+                alt="<%= listing.title %>"
+                class="card-img-top show-card-img"
+                onerror="this.onerror=null;this.src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRI69IS84PGeSJDInvyhd8IPU8_1v3iQU0DeA&s';"
+            >
+
+            <div class="card-body">
+                <p class="card-text"><strong>Location:</strong> <%= listing.location %>, <%= listing.country %></p>
+                <p class="card-text"><strong>Price:</strong> &#8377; <%= listing.price.toLocaleString("en-IN") %> / night</p>
+                <p class="card-text"><strong>Description:</strong> <%= listing.description %></p>
+            </div>
+        </div>
+
+        <div class="show-actions">
+            <a href="/listings" class="btn btn-dark">Back to Listings</a>
+            <a href="/listings/<%= listing._id %>/edit" class="btn btn-outline-dark">Edit Listing</a>
+
+            <form method="POST" action="/listings/<%= listing._id %>?_method=DELETE" class="d-inline">
+                <button class="btn btn-danger">Delete Listing</button>
+            </form>
+        </div>
+    </div>
 
 </body>
-
