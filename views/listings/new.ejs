@@ -2,34 +2,42 @@
     <div class="row">
         <div class="col-8 offset-2">
             <h3>Create New Listing</h3>
-            <form method="POST" action="/listings">
+            <form method="POST" action="/listings" novalidate class="needs-validation">
                 <div class="mb-3">
                     <label for="title" class="form-label">Title:</label>
                     <input type="text" id="title" name="title" placeholder="enter title" class="form-control" required>
+                   
+                    <div class="invalid-feedback">Enter the Title...</div>
                 </div>
 
                 <div class="mb-3">
                     <label for="location" class="form-label">Location:</label>
                     <input type="text" id="location" name="location" placeholder="enter location" class="form-control"
                         required>
+                    <div class="invalid-feedback">Enter the Location...</div>
                 </div>
+
 
                 <div class="mb-3">
                     <label for="description" class="form-label">Description:</label><br>
                     <textarea id="description" name="description" placeholder="enter description" class="form-control"
-                        rows="4" cols="50" required></textarea><br>
+                        rows="4" cols="50" required></textarea>
+                    <div class="invalid-feedback">Enter the Description...</div>
                 </div>
+
                 <div class="row">
                     <div class="mb-3 col-5">
                         <label for="price" class="form-label">Price (in INR):</label>
-                        <input type="number" id="price" name="price" placeholder="enter price" class="form-control"
-                            required>
+                        <input  id="price" name="price" placeholder="enter price" class="form-control"
+                            min="0" step="any" required>
+                        <div class="invalid-feedback">Enter a valid numeric price...</div>
                     </div>
 
                     <div class="mb-3 col-md-7">
                         <label for="country" class="form-label">Country:</label>
                         <input type="text" id="country" name="country" placeholder="enter country" class="form-control"
                             required>
+                        <div class="invalid-feedback">Enter the Country...</div>
                     </div>
 
                 </div>
