@@ -1,0 +1,40 @@
+<% layout("/layouts/boilerplate") %>
+
+<div class="cookie-page">
+    <div class="cookie-card">
+        <h1 class="cookie-title">Stored Cookies</h1>
+        <p class="cookie-subtitle">These are the cookies currently available on this request.</p>
+
+        <% const cookieEntries = Object.entries(cookies || {}); %>
+
+        <% if (cookieEntries.length === 0) { %>
+            <div class="alert alert-secondary mb-0" role="alert">
+                No cookies found for this request.
+            </div>
+        <% } else { %>
+            <div class="table-responsive">
+                <table class="table cookie-table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th scope="col">Name</th>
+                            <th scope="col">Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% cookieEntries.forEach(([name, value]) => { %>
+                            <tr>
+                                <td><code><%= name %></code></td>
+                                <td><code><%= value %></code></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        <% } %>
+
+        <div class="cookie-actions">
+            <a href="/set-cookie" class="btn btn-dark">Set Demo Cookie</a>
+            <a href="/set-session" class="btn btn-outline-dark">Back to Sessions</a>
+        </div>
+    </div>
+</div>

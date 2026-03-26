@@ -135,3 +135,44 @@ input[type="number"] {
     -moz-appearance: textfield;
     appearance: textfield;
 }
+
+.cookie-page {
+    max-width: 54rem;
+    margin: 0 auto 3rem;
+}
+
+.cookie-card {
+    background: #ffffff;
+    border: 1px solid #e5e5e5;
+    border-radius: 1rem;
+    box-shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    padding: 2rem;
+}
+
+.cookie-title {
+    font-size: 2rem;
+    font-weight: 700;
+    margin-bottom: 0.5rem;
+}
+
+.cookie-subtitle {
+    color: #5f5f5f;
+    margin-bottom: 1.5rem;
+}
+
+.cookie-table {
+    border-radius: 0.75rem;
+    overflow: hidden;
+}
+
+.cookie-table code {
+    color: #c7254e;
+    word-break: break-word;
+}
+
+.cookie-actions {
+    display: flex;
+    gap: 0.75rem;
+    flex-wrap: wrap;
+    margin-top: 1.5rem;
+}

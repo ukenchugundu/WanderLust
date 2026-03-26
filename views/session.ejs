@@ -1,0 +1,40 @@
+<% layout("/layouts/boilerplate") %>
+
+<div class="cookie-page">
+    <div class="cookie-card">
+        <h1 class="cookie-title">Session Data</h1>
+        <p class="cookie-subtitle">This data lives on the server and is linked to your browser through a session ID cookie.</p>
+
+        <% const sessionEntries = Object.entries(sessionData || {}).filter(([key]) => !key.startsWith('cookie')); %>
+
+        <% if (sessionEntries.length === 0) { %>
+            <div class="alert alert-secondary mb-0" role="alert">
+                No custom session data found yet.
+            </div>
+        <% } else { %>
+            <div class="table-responsive">
+                <table class="table cookie-table align-middle mb-0">
+                    <thead>
+                        <tr>
+                            <th scope="col">Key</th>
+                            <th scope="col">Value</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <% sessionEntries.forEach(([key, value]) => { %>
+                            <tr>
+                                <td><code><%= key %></code></td>
+                                <td><code><%= typeof value === "object" ? JSON.stringify(value) : value %></code></td>
+                            </tr>
+                        <% }) %>
+                    </tbody>
+                </table>
+            </div>
+        <% } %>
+
+        <div class="cookie-actions">
+            <a href="/set-session" class="btn btn-dark">Set Demo Session</a>
+            <a href="/get-cookies" class="btn btn-outline-dark">View Cookies</a>
+        </div>
+    </div>
+</div>
