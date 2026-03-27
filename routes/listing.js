@@ -5,6 +5,7 @@ const Listing = require('../models/listings');
 const wrapAsync = require('../utils/WrapAsync');
 const ExpressError = require('../utils/ExpressError');
 const { listingSchema } = require('../schema');
+const { isLoggedIn, isListingOwner } = require('../middleware');
 
 const defaultImageUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRI69IS84PGeSJDInvyhd8IPU8_1v3iQU0DeA&s';
 
@@ -27,7 +28,7 @@ router.get(
   })
 );
 
-router.get('/new', (req, res) => {
+router.get('/new', isLoggedIn, (req, res) => {
   res.render('./listings/new.ejs');
 });
 
@@ -39,7 +40,14 @@ router.get(
       throw new ExpressError('Listing not found', 404);
     }
 
-    const foundListing = await Listing.findById(id).populate('reviews');
+    const foundListing = await Listing.findById(id)
+      .populate('owner')
+      .populate({
+        path: 'reviews',
+        populate: {
+          path: 'author',
+        },
+      });
     if (!foundListing) {
       throw new ExpressError('Listing not found', 404);
     }
@@ -50,6 +58,7 @@ router.get(
 
 router.post(
   '/',
+  isLoggedIn,
   validateListing,
   wrapAsync(async (req, res) => {
     const { title, description, price, location, country, image } = req.body;
@@ -59,6 +68,7 @@ router.post(
       price,
       location,
       country,
+      owner: req.user._id,
       image: {
         url: image && image.trim() ? image.trim() : defaultImageUrl,
       },
@@ -72,19 +82,18 @@ router.post(
 
 router.get(
   '/:id/edit',
+  isLoggedIn,
+  isListingOwner,
   wrapAsync(async (req, res) => {
-    const { id } = req.params;
-    const foundListing = await Listing.findById(id);
-    if (!foundListing) {
-      throw new ExpressError('Listing not found', 404);
-    }
-
+    const foundListing = res.locals.listing;
     res.render('./listings/edit.ejs', { listing: foundListing });
   })
 );
 
 router.put(
   '/:id',
+  isLoggedIn,
+  isListingOwner,
   validateListing,
   wrapAsync(async (req, res) => {
     const { id } = req.params;
@@ -115,6 +124,8 @@ router.put(
 
 router.delete(
   '/:id',
+  isLoggedIn,
+  isListingOwner,
   wrapAsync(async (req, res) => {
     const { id } = req.params;
     const deletedListing = await Listing.findByIdAndDelete(id);

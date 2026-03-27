@@ -14,9 +14,13 @@
                         onerror="this.onerror=null;this.src='https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRI69IS84PGeSJDInvyhd8IPU8_1v3iQU0DeA&s';">
 
                     <div class="card-body">
+                        <% const isListingOwner = currUser && listing.owner && currUser._id.equals(listing.owner._id); %>
                         <p class="card-text"><strong>Location:</strong>
                             <%= listing.location %>, <%= listing.country %>
                         </p>
+                        <% if (listing.owner) { %>
+                            <p class="card-text"><strong>Hosted by:</strong> <%= listing.owner.username %></p>
+                        <% } %>
                         <p class="card-text"><strong>Price:</strong> &#8377; <%= listing.price.toLocaleString("en-IN")
                                 %> / night</p>
                         <p class="card-text"><strong>Description:</strong>
@@ -27,11 +31,13 @@
 
                 <div class="show-actions">
                     <a href="/listings" class="btn btn-dark">Back to Listings</a>
-                    <a href="/listings/<%= listing._id %>/edit" class="btn btn-outline-dark">Edit Listing</a>
+                    <% if (isListingOwner) { %>
+                        <a href="/listings/<%= listing._id %>/edit" class="btn btn-outline-dark">Edit Listing</a>
 
-                    <form method="POST" action="/listings/<%= listing._id %>?_method=DELETE" class="d-inline">
-                        <button class="btn btn-danger">Delete Listing</button>
-                    </form>
+                        <form method="POST" action="/listings/<%= listing._id %>?_method=DELETE" class="d-inline">
+                            <button class="btn btn-danger">Delete Listing</button>
+                        </form>
+                    <% } %>
                 </div>
 
 
@@ -39,32 +45,42 @@
                     <br>
                     <hr>
                     <h4>Leave a Review</h4>
-                    <form action="/listings/<%= listing._id %>/reviews" method="POST" class="needs-validation" novalidate>
-                        <div>
-                            <label for="rating" class="form-label">Rating:</label>
-                            <input type="range" min="1" max="5" id="rating" name="review[rating]" class="form-range">
-                        </div>
-                        <div>
-                            <label for="comment" class="form-label">Comment:</label>
-                            <textarea id="comment" name="review[comment]" rows="5" cols="30"
-                                class="form-control" required></textarea>
-                                <div class="invalid-feedback">Please enter valid comment...</div>
-                        </div>
-                        
-                        <button class="btn btn-primary btn-outline-dark mt-3">Submit Review</button>
-                    </form>
+                    <% if (currUser) { %>
+                        <form action="/listings/<%= listing._id %>/reviews" method="POST" class="needs-validation" novalidate>
+                            <div>
+                                <label for="rating" class="form-label">Rating:</label>
+                                <input type="range" min="1" max="5" id="rating" name="review[rating]" class="form-range">
+                            </div>
+                            <div>
+                                <label for="comment" class="form-label">Comment:</label>
+                                <textarea id="comment" name="review[comment]" rows="5" cols="30"
+                                    class="form-control" required></textarea>
+                                    <div class="invalid-feedback">Please enter valid comment...</div>
+                            </div>
+                            
+                            <button class="btn btn-primary btn-outline-dark mt-3">Submit Review</button>
+                        </form>
+                    <% } else { %>
+                        <p class="text-muted">Please <a href="/login">login</a> to leave a review.</p>
+                    <% } %>
 
                     <hr>
 
                     <h4>All Reviews</h4>
                     <% listing.reviews.forEach((review) => { %>
+                        <% const isReviewAuthor = currUser && review.author && currUser._id.equals(review.author._id); %>
                         <div class="card mb-3">
                             <div class="card-body">
                                 <h5 class="card-title">Rating: <%= review.rating %></h5>
+                                <% if (review.author) { %>
+                                    <p class="card-text text-muted mb-2">By <%= review.author.username %></p>
+                                <% } %>
                                 <p class="card-text"><%= review.comment %></p>
-                                <form method="POST" action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE">
-                                    <button class="btn btn-sm btn-danger">Delete Review</button>
-                                </form>
+                                <% if (isReviewAuthor) { %>
+                                    <form method="POST" action="/listings/<%= listing._id %>/reviews/<%= review._id %>?_method=DELETE">
+                                        <button class="btn btn-sm btn-danger">Delete Review</button>
+                                    </form>
+                                <% } %>
                             </div>
                         </div>
                     <% }) %>

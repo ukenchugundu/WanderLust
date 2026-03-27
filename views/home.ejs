@@ -1,0 +1,21 @@
+<% layout("/layouts/boilerplate") %>
+
+<section class="hero">
+    <div class="hero-card">
+        <p class="hero-kicker">WanderLust</p>
+        <h1 class="hero-title">Find, share, and manage stays with a proper account flow.</h1>
+        <p class="hero-copy">
+            Create an account to add listings, log in to manage your stays, and leave reviews on places you love.
+        </p>
+
+        <div class="hero-actions">
+            <% if (currUser) { %>
+                <a href="/listings" class="btn btn-danger">Browse Listings</a>
+                <a href="/listings/new" class="btn btn-outline-dark">Add Listing</a>
+            <% } else { %>
+                <a href="/signup" class="btn btn-danger">Sign Up</a>
+                <a href="/login" class="btn btn-outline-dark">Login</a>
+            <% } %>
+        </div>
+    </div>
+</section>

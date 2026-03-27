@@ -5,6 +5,7 @@ const Review = require('../models/reviews');
 const wrapAsync = require('../utils/WrapAsync');
 const ExpressError = require('../utils/ExpressError');
 const { reviewSchema } = require('../schema');
+const { isLoggedIn, isReviewAuthor } = require('../middleware');
 
 const validateReview = (req, res, next) => {
   const { error } = reviewSchema.validate(req.body, { abortEarly: false });
@@ -19,6 +20,7 @@ const validateReview = (req, res, next) => {
 
 router.post(
   '/',
+  isLoggedIn,
   validateReview,
   wrapAsync(async (req, res) => {
     const { id } = req.params;
@@ -29,7 +31,7 @@ router.post(
       throw new ExpressError('Listing not found', 404);
     }
 
-    const newReview = new Review({ comment, rating });
+    const newReview = new Review({ comment, rating, author: req.user._id });
     await newReview.save();
 
     foundListing.reviews.push(newReview);
@@ -42,6 +44,8 @@ router.post(
 
 router.delete(
   '/:reviewId',
+  isLoggedIn,
+  isReviewAuthor,
   wrapAsync(async (req, res) => {
     const { id, reviewId } = req.params;
 

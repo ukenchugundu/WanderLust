@@ -1,0 +1,30 @@
+<% layout("/layouts/boilerplate") %>
+
+<div class="auth-wrapper">
+    <div class="auth-card">
+        <h2 class="auth-title">Create account</h2>
+        <p class="auth-subtitle">Sign up to create listings, add reviews, and manage your own posts.</p>
+
+        <form action="/signup" method="POST" class="needs-validation" novalidate>
+            <div class="mb-3">
+                <label for="username" class="form-label">Username</label>
+                <input type="text" id="username" name="username" class="form-control" required>
+                <div class="invalid-feedback">Please enter a username.</div>
+            </div>
+
+            <div class="mb-3">
+                <label for="email" class="form-label">Email</label>
+                <input type="email" id="email" name="email" class="form-control" required>
+                <div class="invalid-feedback">Please enter a valid email.</div>
+            </div>
+
+            <div class="mb-3">
+                <label for="password" class="form-label">Password</label>
+                <input type="password" id="password" name="password" class="form-control" minlength="6" required>
+                <div class="invalid-feedback">Password must be at least 6 characters.</div>
+            </div>
+
+            <button type="submit" class="btn btn-danger w-100">Sign Up</button>
+        </form>
+    </div>
+</div>
