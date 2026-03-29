@@ -1,13 +1,25 @@
 const express = require('express');
 const router = express.Router();
-const mongoose = require('mongoose');
-const Listing = require('../models/listings');
+const multer = require('multer');
 const wrapAsync = require('../utils/WrapAsync');
 const ExpressError = require('../utils/ExpressError');
 const { listingSchema } = require('../schema');
 const { isLoggedIn, isListingOwner } = require('../middleware');
+const listingController = require('../controllers/listings');
+const { storage } = require('../cloudConfig');
 
-const defaultImageUrl = 'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRI69IS84PGeSJDInvyhd8IPU8_1v3iQU0DeA&s';
+const upload = multer({
+  storage,
+  limits: {
+    fileSize: 5 * 1024 * 1024,
+  },
+  fileFilter(req, file, cb) {
+    if (!file.mimetype.startsWith('image/')) {
+      return cb(new ExpressError('Please upload a valid image file.', 400));
+    }
+    cb(null, true);
+  },
+});
 
 const validateListing = (req, res, next) => {
   const { error } = listingSchema.validate(req.body, { abortEarly: false });
@@ -20,122 +32,41 @@ const validateListing = (req, res, next) => {
   next();
 };
 
-router.get(
-  '/',
-  wrapAsync(async (req, res) => {
-    const alllistings = await Listing.find({});
-    res.render('./listings/index.ejs', { alllistings });
-  })
-);
+router.get('/', wrapAsync(listingController.index));
 
-router.get('/new', isLoggedIn, (req, res) => {
-  res.render('./listings/new.ejs');
-});
+router.get('/new', isLoggedIn, listingController.renderNewForm);
 
-router.get(
-  '/:id',
-  wrapAsync(async (req, res) => {
-    const { id } = req.params;
-    if (!mongoose.isValidObjectId(id)) {
-      throw new ExpressError('Listing not found', 404);
-    }
-
-    const foundListing = await Listing.findById(id)
-      .populate('owner')
-      .populate({
-        path: 'reviews',
-        populate: {
-          path: 'author',
-        },
-      });
-    if (!foundListing) {
-      throw new ExpressError('Listing not found', 404);
-    }
-
-    res.render('./listings/show.ejs', { listing: foundListing });
-  })
-);
+router.get('/:id', wrapAsync(listingController.showListing));
 
 router.post(
   '/',
   isLoggedIn,
+  upload.single('image'),
   validateListing,
-  wrapAsync(async (req, res) => {
-    const { title, description, price, location, country, image } = req.body;
-    const newListing = new Listing({
-      title,
-      description,
-      price,
-      location,
-      country,
-      owner: req.user._id,
-      image: {
-        url: image && image.trim() ? image.trim() : defaultImageUrl,
-      },
-    });
-
-    await newListing.save();
-    req.flash('success', 'Listing created successfully.');
-    res.redirect('/listings');
-  })
+  wrapAsync(listingController.createListing)
 );
 
 router.get(
   '/:id/edit',
   isLoggedIn,
   isListingOwner,
-  wrapAsync(async (req, res) => {
-    const foundListing = res.locals.listing;
-    res.render('./listings/edit.ejs', { listing: foundListing });
-  })
+  wrapAsync(listingController.renderEditForm)
 );
 
 router.put(
   '/:id',
   isLoggedIn,
   isListingOwner,
+  upload.single('image'),
   validateListing,
-  wrapAsync(async (req, res) => {
-    const { id } = req.params;
-    const { title, description, price, location, country, image } = req.body;
-    const updatedListing = {
-      title,
-      description,
-      price,
-      location,
-      country,
-      image: {
-        url: image && image.trim() ? image.trim() : defaultImageUrl,
-      },
-    };
-
-    const updated = await Listing.findByIdAndUpdate(id, updatedListing, {
-      runValidators: true,
-      returnDocument: 'after',
-    });
-    if (!updated) {
-      throw new ExpressError('Listing not found', 404);
-    }
-
-    req.flash('success', 'Listing updated successfully.');
-    res.redirect(`/listings/${id}`);
-  })
+  wrapAsync(listingController.updateListing)
 );
 
 router.delete(
   '/:id',
   isLoggedIn,
   isListingOwner,
-  wrapAsync(async (req, res) => {
-    const { id } = req.params;
-    const deletedListing = await Listing.findByIdAndDelete(id);
-    if (!deletedListing) {
-      throw new ExpressError('Listing not found', 404);
-    }
-
-    req.flash('success', 'Listing deleted successfully.');
-    res.redirect('/listings');
-  })
+  wrapAsync(listingController.deleteListing)
 );
 
 module.exports = router;

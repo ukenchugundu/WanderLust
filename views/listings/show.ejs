@@ -3,7 +3,6 @@
     <body>
         <% const imageUrl=listing.image && listing.image.url ? listing.image.url
             : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRI69IS84PGeSJDInvyhd8IPU8_1v3iQU0DeA&s" ; %>
-
             <div class="show-card-wrapper">
                 <h3 class="show-heading">
                     <%= listing.title %>
@@ -47,9 +46,21 @@
                     <h4>Leave a Review</h4>
                     <% if (currUser) { %>
                         <form action="/listings/<%= listing._id %>/reviews" method="POST" class="needs-validation" novalidate>
-                            <div>
-                                <label for="rating" class="form-label">Rating:</label>
-                                <input type="range" min="1" max="5" id="rating" name="review[rating]" class="form-range">
+                            <div class="mb-3">
+                                <label class="form-label d-block mb-2">Rating:</label>
+                                <input type="hidden" name="review[rating]" class="rating-value-input" value="" required>
+                                <div class="rating-picker" data-rating-picker role="group" aria-label="Choose a rating">
+                                    <% for (let value = 1; value <= 5; value++) { %>
+                                        <button type="button" class="rating-star-button" data-rating-value="<%= value %>" aria-label="<%= value %> star<%= value > 1 ? 's' : '' %>">
+                                            ★
+                                        </button>
+                                    <% } %>
+                                </div>
+                                <div class="rating-meta">
+                                    <span class="rating-caption" data-rating-caption>Select your rating</span>
+                                    <button type="button" class="rating-clear-btn d-none" data-rating-clear>Clear</button>
+                                </div>
+                                <div class="invalid-feedback">Please select at least 1 star.</div>
                             </div>
                             <div>
                                 <label for="comment" class="form-label">Comment:</label>
@@ -67,11 +78,21 @@
                     <hr>
 
                     <h4>All Reviews</h4>
-                    <% listing.reviews.forEach((review) => { %>
+                        <% listing.reviews.forEach((review) => { %>
                         <% const isReviewAuthor = currUser && review.author && currUser._id.equals(review.author._id); %>
                         <div class="card mb-3">
                             <div class="card-body">
-                                <h5 class="card-title">Rating: <%= review.rating %></h5>
+                                <div class="review-rating-row mb-2">
+                                    <p class="review-stars-display mb-0" aria-label="Rated <%= review.rating %> out of 5">
+                                        <% for (let value = 1; value <= 5; value++) { %>
+                                            <span class="<%= value <= review.rating ? 'review-star-filled' : 'review-star-empty' %>">★</span>
+                                        <% } %>
+                                    </p>
+                                    <span class="review-rating-badge"><%= review.rating %>.0</span>
+                                    <span class="review-rating-label">
+                                        <%= review.rating === 1 ? 'Poor' : review.rating === 2 ? 'Fair' : review.rating === 3 ? 'Good' : review.rating === 4 ? 'Very good' : 'Excellent' %>
+                                    </span>
+                                </div>
                                 <% if (review.author) { %>
                                     <p class="card-text text-muted mb-2">By <%= review.author.username %></p>
                                 <% } %>

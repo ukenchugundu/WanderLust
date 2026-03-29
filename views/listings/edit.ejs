@@ -3,7 +3,7 @@
         <div class="col-8 offset-2">
             <h3>Edit Listing</h3>
         
-     <form method="POST" action="/listings/<%= listing._id %>?_method=PUT" novalidate class="needs-validation">
+     <form method="POST" action="/listings/<%= listing._id %>?_method=PUT" novalidate class="needs-validation upload-form" enctype="multipart/form-data">
         <div class="mb-3">
             <label for="title" class="form-label">Title:</label>
             <input type="text" id="title" name="title" value="<%= listing.title %>" class="form-control" required>
@@ -38,10 +38,22 @@
         </div>
 
         <div class="mb-3">
-            <label for="image" class="form-label">Image URL:</label>
-            <input type="url" id="image" name="image" value="<%= listing.image && listing.image.url ? listing.image.url : '' %>" class="form-control">
+            <label class="form-label">Current Image:</label><br>
+            <% if (listing.image && listing.image.url) { %>
+                <img src="<%= listing.image.url %>" alt="<%= listing.title %>" class="img-thumbnail mb-2" style="max-width: 240px;">
+            <% } %>
         </div>
-        <button type="submit" class="btn btn-danger">Update Listing</button>
+
+        <div class="mb-3">
+            <label for="image" class="form-label">Upload New Image:</label>
+            <input type="file" id="image" name="image" accept="image/*" class="form-control">
+            <div class="form-text upload-help">Leave this empty to keep the current image.</div>
+            <div class="form-text file-feedback" aria-live="polite"></div>
+        </div>
+        <button type="submit" class="btn btn-danger upload-submit-btn">
+            <span class="default-label">Update Listing</span>
+            <span class="uploading-label d-none">Uploading image...</span>
+        </button>
     </form>
     <br>
     <a href="/listings" class="btn btn-secondary">Back to Listings</a> <br> <br>

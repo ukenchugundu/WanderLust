@@ -2,7 +2,7 @@
     <div class="row">
         <div class="col-8 offset-2">
             <h3>Create New Listing</h3>
-            <form method="POST" action="/listings" novalidate class="needs-validation">
+            <form method="POST" action="/listings" novalidate class="needs-validation upload-form" enctype="multipart/form-data">
                 <div class="mb-3">
                     <label for="title" class="form-label">Title:</label>
                     <input type="text" id="title" name="title" placeholder="enter title" class="form-control" required>
@@ -43,12 +43,17 @@
                 </div>
 
                 <div class="mb-3">
-                    <label for="image" class="form-label">Image URL:</label>
-                    <input type="url" id="image" name="image" placeholder="enter image URL" class="form-control">
+                    <label for="image" class="form-label">Upload Image:</label>
+                    <input type="file" id="image" name="image" accept="image/*" class="form-control">
+                    <div class="form-text upload-help">Upload a JPG, PNG, WEBP, or AVIF image up to 5MB.</div>
+                    <div class="form-text file-feedback" aria-live="polite"></div>
                 </div>
 
                 <div class="mb-3">
-                    <button type="submit" class="btn btn-danger">Create Listing</button>
+                    <button type="submit" class="btn btn-danger upload-submit-btn">
+                        <span class="default-label">Create Listing</span>
+                        <span class="uploading-label d-none">Uploading image...</span>
+                    </button>
                 </div>
 
             </form>

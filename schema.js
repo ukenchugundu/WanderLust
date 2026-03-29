@@ -24,9 +24,6 @@ module.exports.listingSchema = Joi.object({
         'string.empty': 'Country is required',
         'any.required': 'Country is required',
     }),
-    image: Joi.string().trim().allow('').uri().messages({
-        'string.uri': 'Image must be a valid URL',
-    }),
 });
 
 

@@ -1,5 +1,6 @@
 const mongoose = require('mongoose');
 const reviews = require('./reviews');
+const { cloudinary } = require('../cloudConfig');
 
 const Schema = mongoose.Schema;
 const defaultImageUrl = "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRI69IS84PGeSJDInvyhd8IPU8_1v3iQU0DeA&s";
@@ -66,6 +67,9 @@ const listingSchema = new Schema({
 
 listingSchema.post('findOneAndDelete', async(listing) =>{
     if (listing) {
+        if (listing.image && listing.image.filename && listing.image.filename !== 'listingimage') {
+            await cloudinary.uploader.destroy(listing.image.filename);
+        }
         await reviews.deleteMany({
             _id : {
                 $in : listing.reviews,

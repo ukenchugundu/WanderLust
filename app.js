@@ -1,7 +1,8 @@
+require('dotenv').config({ quiet: true });
+
 const express = require('express');
 const app = express();
 const mongoose = require('mongoose');
-const listing = require('./models/listings');
 const path = require('path');
 const methodoverride = require('method-override');
 const ejs = require('ejs-mate');
@@ -54,7 +55,8 @@ main().catch((err) => {
 });
 
 app.get('/testlistenings', wrapAsync(async(req,res) => {
-  const samplelisting = new listing ({
+  const Listing = require('./models/listings');
+  const samplelisting = new Listing ({
     title : "Beautiful Beach House",
     description : "A stunning beach house with breathtaking ocean views, perfect for a relaxing getaway.",
     // image : "https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80",
@@ -152,6 +154,14 @@ app.use((err, req, res, next) => {
   let { statusCode = 500, message = "Something went wrong!" } = err;
   let { errorDetails = [] } = err;
 
+  if (err.name === 'MulterError') {
+    statusCode = 400;
+    message =
+      err.code === 'LIMIT_FILE_SIZE'
+        ? 'Image must be 5MB or smaller.'
+        : err.message;
+  }
+
   if (err.name === 'ValidationError' && errorDetails.length === 0) {
     statusCode = 400;
     message = "Validation failed";
@@ -164,6 +174,14 @@ app.use((err, req, res, next) => {
   } else if (err.name === 'CastError') {
     statusCode = 400;
     message = err.path === 'price' ? "Price must be a valid number" : `Invalid value for ${err.path}`;
+  }
+
+  if (
+    !message &&
+    typeof err.message === 'string' &&
+    err.message.includes('cloud_name')
+  ) {
+    message = 'Cloudinary cloud name is invalid. Update your .env with the real Cloudinary cloud name.';
   }
 
   res.status(statusCode).render('error.ejs', { message, errorDetails });
