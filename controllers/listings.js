@@ -38,7 +38,7 @@ module.exports.showListing = async (req, res) => {
 };
 
 module.exports.createListing = async (req, res) => {
-  const { title, description, price, location, country } = req.body;
+  const { title, description, price, location, country, latitude, longitude, mapDisplayName } = req.body;
   const uploadedImage = req.file
     ? {
         url: req.file.path,
@@ -58,6 +58,20 @@ module.exports.createListing = async (req, res) => {
     image: uploadedImage,
   });
 
+  const parsedLatitude = Number(latitude);
+  const parsedLongitude = Number(longitude);
+
+  if (Number.isFinite(parsedLatitude) && Number.isFinite(parsedLongitude)) {
+    newListing.geometry = {
+      type: 'Point',
+      coordinates: [parsedLongitude, parsedLatitude],
+    };
+  }
+
+  if (typeof mapDisplayName === 'string' && mapDisplayName.trim()) {
+    newListing.mapDisplayName = mapDisplayName.trim();
+  }
+
   await newListing.save();
   req.flash('success', 'Listing created successfully.');
   res.redirect('/listings');
@@ -70,7 +84,7 @@ module.exports.renderEditForm = async (req, res) => {
 
 module.exports.updateListing = async (req, res) => {
   const { id } = req.params;
-  const { title, description, price, location, country } = req.body;
+  const { title, description, price, location, country, latitude, longitude, mapDisplayName } = req.body;
   const updatedListing = {
     title,
     description,
@@ -78,6 +92,23 @@ module.exports.updateListing = async (req, res) => {
     location,
     country,
   };
+
+  const parsedLatitude = Number(latitude);
+  const parsedLongitude = Number(longitude);
+
+  if (Number.isFinite(parsedLatitude) && Number.isFinite(parsedLongitude)) {
+    updatedListing.geometry = {
+      type: 'Point',
+      coordinates: [parsedLongitude, parsedLatitude],
+    };
+  } else {
+    updatedListing.geometry = undefined;
+  }
+
+  updatedListing.mapDisplayName =
+    typeof mapDisplayName === 'string' && mapDisplayName.trim()
+      ? mapDisplayName.trim()
+      : undefined;
 
   const updated = await Listing.findByIdAndUpdate(id, updatedListing, {
     runValidators: true,

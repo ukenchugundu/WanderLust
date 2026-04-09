@@ -3,6 +3,9 @@
         <div class="col-8 offset-2">
             <h3>Create New Listing</h3>
             <form method="POST" action="/listings" novalidate class="needs-validation upload-form" enctype="multipart/form-data">
+                <input type="hidden" name="latitude" data-location-latitude>
+                <input type="hidden" name="longitude" data-location-longitude>
+                <input type="hidden" name="mapDisplayName" data-location-display-name>
                 <div class="mb-3">
                     <label for="title" class="form-label">Title:</label>
                     <input type="text" id="title" name="title" placeholder="enter title" class="form-control" required>
@@ -12,7 +15,8 @@
 
                 <div class="mb-3">
                     <label for="location" class="form-label">Location:</label>
-                    <input type="text" id="location" name="location" placeholder="enter location" class="form-control"
+                    <input type="text" id="location" name="location" placeholder="enter city or area" class="form-control"
+                        data-location-input
                         required>
                     <div class="invalid-feedback">Enter the Location...</div>
                 </div>
@@ -36,11 +40,14 @@
                     <div class="mb-3 col-md-7">
                         <label for="country" class="form-label">Country:</label>
                         <input type="text" id="country" name="country" placeholder="enter country" class="form-control"
+                            data-country-input
                             required>
                         <div class="invalid-feedback">Enter the Country...</div>
                     </div>
 
                 </div>
+
+                <div class="form-text file-feedback location-feedback" data-location-feedback aria-live="polite"></div>
 
                 <div class="mb-3">
                     <label for="image" class="form-label">Upload Image:</label>

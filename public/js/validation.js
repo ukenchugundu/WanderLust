@@ -79,6 +79,39 @@
     })
   }
 
+  const geocodeListingLocation = async query => {
+    const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(query)}`
+    const response = await fetch(geocodeUrl, {
+      headers: {
+        Accept: 'application/json',
+      },
+    })
+
+    if (!response.ok) {
+      throw new Error('We could not verify this location right now.')
+    }
+
+    const results = await response.json()
+
+    if (!Array.isArray(results) || results.length === 0) {
+      throw new Error('We could not find this location on the map. Try a more specific city or area.')
+    }
+
+    const bestMatch = results[0]
+    const latitude = Number(bestMatch.lat)
+    const longitude = Number(bestMatch.lon)
+
+    if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+      throw new Error('The map service returned an invalid location. Please try again.')
+    }
+
+    return {
+      latitude,
+      longitude,
+      displayName: bestMatch.display_name || query,
+    }
+  }
+
   // Fetch all the forms we want to apply custom Bootstrap validation styles to
   const forms = document.querySelectorAll('.needs-validation')
 
@@ -86,6 +119,12 @@
   Array.from(forms).forEach(form => {
     const fileInput = form.querySelector('input[type="file"][name="image"]')
     const feedback = form.querySelector('.file-feedback')
+    const locationFeedback = form.querySelector('[data-location-feedback]')
+    const locationInput = form.querySelector('[data-location-input]')
+    const countryInput = form.querySelector('[data-country-input]')
+    const latitudeInput = form.querySelector('[data-location-latitude]')
+    const longitudeInput = form.querySelector('[data-location-longitude]')
+    const displayNameInput = form.querySelector('[data-location-display-name]')
     const submitButton = form.querySelector('.upload-submit-btn')
     const defaultLabel = submitButton?.querySelector('.default-label')
     const uploadingLabel = submitButton?.querySelector('.uploading-label')
@@ -174,6 +213,19 @@
       })
     }
 
+    const resetStoredLocation = () => {
+      if (latitudeInput) latitudeInput.value = ''
+      if (longitudeInput) longitudeInput.value = ''
+      if (displayNameInput) displayNameInput.value = ''
+      if (locationFeedback) {
+        locationFeedback.classList.remove('text-danger', 'text-success')
+        locationFeedback.textContent = ''
+      }
+    }
+
+    locationInput?.addEventListener('input', resetStoredLocation)
+    countryInput?.addEventListener('input', resetStoredLocation)
+
     form.addEventListener('submit', async event => {
       if (!form.checkValidity()) {
         event.preventDefault()
@@ -189,6 +241,34 @@
         uploadingLabel?.classList.remove('d-none')
 
         try {
+          const hasLocationFields =
+            locationInput &&
+            countryInput &&
+            latitudeInput &&
+            longitudeInput &&
+            displayNameInput
+
+          if (hasLocationFields) {
+            const locationLabel = `${locationInput.value.trim()}, ${countryInput.value.trim()}`
+
+            if (!latitudeInput.value || !longitudeInput.value) {
+              if (locationFeedback) {
+                locationFeedback.textContent = 'Matching this listing to the map...'
+                locationFeedback.classList.remove('text-danger', 'text-success')
+              }
+
+              const matchedLocation = await geocodeListingLocation(locationLabel)
+              latitudeInput.value = matchedLocation.latitude
+              longitudeInput.value = matchedLocation.longitude
+              displayNameInput.value = matchedLocation.displayName
+
+              if (locationFeedback) {
+                locationFeedback.textContent = `Map match saved: ${matchedLocation.displayName}`
+                locationFeedback.classList.add('text-success')
+              }
+            }
+          }
+
           if (fileInput?.files?.[0]) {
             const originalFile = fileInput.files[0]
             feedback.textContent = 'Optimizing image before upload...'
@@ -219,10 +299,16 @@
           submitButton.disabled = false
           defaultLabel?.classList.remove('d-none')
           uploadingLabel?.classList.add('d-none')
-          fileInput?.setCustomValidity('Unable to process the selected image.')
-          feedback.textContent = error.message
-          feedback.classList.remove('text-success')
-          feedback.classList.add('text-danger')
+          if (fileInput && feedback && fileInput.files?.[0]) {
+            fileInput.setCustomValidity('Unable to process the selected image.')
+            feedback.textContent = error.message
+            feedback.classList.remove('text-success')
+            feedback.classList.add('text-danger')
+          } else if (locationFeedback) {
+            locationFeedback.textContent = error.message
+            locationFeedback.classList.remove('text-success')
+            locationFeedback.classList.add('text-danger')
+          }
           form.classList.add('was-validated')
         }
       }

@@ -39,6 +39,32 @@
                     <% } %>
                 </div>
 
+                <section class="listing-map-section" aria-labelledby="listing-map-title">
+                    <div class="listing-map-header">
+                        <div>
+                            <p class="listing-map-kicker mb-2">Explore the area</p>
+                            <h4 id="listing-map-title" class="mb-1">Where you'll be</h4>
+                            <p class="listing-map-copy mb-0">
+                                <%= listing.location %>, <%= listing.country %>
+                            </p>
+                        </div>
+                        <span class="listing-map-badge">Live location match</span>
+                    </div>
+                    <div id="listing-map" class="listing-map" aria-label="Map showing the listing location"></div>
+                    <div class="listing-map-footer">
+                        <p id="listing-map-status" class="listing-map-status text-muted mb-0">
+                            Finding the best map match for this listing...
+                        </p>
+                        <a
+                            href="https://www.google.com/maps/search/?api=1&query=<%= encodeURIComponent(`${listing.location}, ${listing.country}`) %>"
+                            class="btn btn-sm btn-outline-dark"
+                            target="_blank"
+                            rel="noopener noreferrer"
+                        >
+                            Open in Google Maps
+                        </a>
+                    </div>
+                </section>
 
                 <div class="col-8 ">
                     <br>
@@ -107,5 +133,123 @@
                     <% }) %>
                 </div>
             </div>
+
+            <script>
+                window.addEventListener('load', () => {
+                    const listingTitle = <%- JSON.stringify(listing.title) %>;
+                    const locationLabel = <%- JSON.stringify(`${listing.location}, ${listing.country}`) %>;
+                    const savedMapDisplayName = <%- JSON.stringify(listing.mapDisplayName || '') %>;
+                    const savedCoordinates = <%- JSON.stringify(
+                        listing.geometry && Array.isArray(listing.geometry.coordinates) && listing.geometry.coordinates.length === 2
+                            ? [listing.geometry.coordinates[1], listing.geometry.coordinates[0]]
+                            : null
+                    ) %>;
+                    const mapElement = document.getElementById('listing-map');
+                    const statusElement = document.getElementById('listing-map-status');
+
+                    if (!mapElement || typeof L === 'undefined') {
+                        if (statusElement) {
+                            statusElement.textContent = 'Map could not be loaded right now.';
+                        }
+                        return;
+                    }
+
+                    const map = L.map(mapElement, {
+                        scrollWheelZoom: false,
+                        zoomControl: true,
+                    }).setView([20.5937, 78.9629], 4);
+
+                    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                        attribution: '&copy; OpenStreetMap contributors',
+                        maxZoom: 19,
+                    }).addTo(map);
+
+                    const addMarker = (latitude, longitude, resolvedLabel = locationLabel) => {
+                        map.setView([latitude, longitude], 13);
+
+                        const listingMarker = L.divIcon({
+                            className: 'listing-map-pin-wrapper',
+                            html: '<span class="listing-map-pin"></span>',
+                            iconSize: [26, 26],
+                            iconAnchor: [13, 26],
+                            popupAnchor: [0, -22],
+                        });
+
+                        L.circle([latitude, longitude], {
+                            radius: 260,
+                            color: '#fe424d',
+                            weight: 1.5,
+                            fillColor: '#fe424d',
+                            fillOpacity: 0.12,
+                        }).addTo(map);
+
+                        L.marker([latitude, longitude], {
+                            icon: listingMarker,
+                        })
+                            .addTo(map)
+                            .bindPopup(`
+                                <div class="listing-map-popup">
+                                    <p class="listing-map-popup-label">Stay location</p>
+                                    <h6>${listingTitle}</h6>
+                                    <p>${resolvedLabel}</p>
+                                </div>
+                            `)
+                            .openPopup();
+
+                        setTimeout(() => map.invalidateSize(), 0);
+                    };
+
+                    if (
+                        Array.isArray(savedCoordinates) &&
+                        savedCoordinates.length === 2 &&
+                        savedCoordinates.every((value) => Number.isFinite(value))
+                    ) {
+                        addMarker(savedCoordinates[0], savedCoordinates[1], savedMapDisplayName || locationLabel);
+
+                        if (statusElement) {
+                            statusElement.textContent = `Showing the saved map location for ${savedMapDisplayName || locationLabel}.`;
+                        }
+                        return;
+                    }
+
+                    const geocodeUrl = `https://nominatim.openstreetmap.org/search?format=jsonv2&limit=1&q=${encodeURIComponent(locationLabel)}`;
+
+                    fetch(geocodeUrl, {
+                        headers: {
+                            Accept: 'application/json',
+                        },
+                    })
+                        .then((response) => {
+                            if (!response.ok) {
+                                throw new Error('Geocoding request failed');
+                            }
+                            return response.json();
+                        })
+                        .then((results) => {
+                            if (!Array.isArray(results) || results.length === 0) {
+                                throw new Error('No map match found');
+                            }
+
+                            const match = results[0];
+                            const latitude = Number(match.lat);
+                            const longitude = Number(match.lon);
+
+                            if (!Number.isFinite(latitude) || !Number.isFinite(longitude)) {
+                                throw new Error('Invalid coordinates received');
+                            }
+
+                            addMarker(latitude, longitude, match.display_name || locationLabel);
+
+                            if (statusElement) {
+                                statusElement.textContent = `Showing the closest matched spot for ${match.display_name || locationLabel}.`;
+                            }
+                        })
+                        .catch(() => {
+                            if (statusElement) {
+                                statusElement.textContent = `We couldn't find an exact map match for ${locationLabel} right now.`;
+                            }
+                        });
+                });
+            </script>
 
     </body>

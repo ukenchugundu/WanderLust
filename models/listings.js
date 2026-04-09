@@ -52,6 +52,20 @@ const listingSchema = new Schema({
         required : [true, "Country is required"],
         trim : true,
     },
+    geometry: {
+        type: {
+            type: String,
+            enum: ['Point'],
+        },
+        coordinates: {
+            type: [Number],
+            default: undefined,
+        },
+    },
+    mapDisplayName: {
+        type: String,
+        trim: true,
+    },
     reviews : [
         {
             type : Schema.Types.ObjectId,
