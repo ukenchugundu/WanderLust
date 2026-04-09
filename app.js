@@ -7,6 +7,7 @@ const path = require('path');
 const methodoverride = require('method-override');
 const ejs = require('ejs-mate');
 const session = require('express-session');
+const MongoStore = require('connect-mongo');
 const flash = require('connect-flash');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
@@ -20,6 +21,32 @@ const userRouter = require('./routes/user');
 const mongoUrl = process.env.MONGO_URL || process.env.MONGO_URI;
 const port = process.env.PORT || 3000;
 const sessionSecret = process.env.SESSION_SECRET || 'devsecret123';
+
+const sanitizeMongoUrl = (url = '') => {
+  try {
+    return url.replace(/\/\/([^:]+):([^@]+)@/, '//$1:***@');
+  } catch {
+    return '[invalid MongoDB URL]';
+  }
+};
+
+const ensureDatabaseName = (url) => {
+  if (!url) {
+    return url;
+  }
+
+  try {
+    const parsed = new URL(url);
+    if (!parsed.pathname || parsed.pathname === '/') {
+      parsed.pathname = '/Wanderlust';
+    }
+    return parsed.toString();
+  } catch {
+    return url;
+  }
+};
+
+const resolvedMongoUrl = ensureDatabaseName(mongoUrl);
 
 const parseCookies = (cookieHeader = '') => {
   return cookieHeader
@@ -39,7 +66,7 @@ const parseCookies = (cookieHeader = '') => {
 };
 
 async function main() {
-  await mongoose.connect(mongoUrl);
+  await mongoose.connect(resolvedMongoUrl);
   console.log('Connected to MongoDB');
 
   app.listen(port,() => {
@@ -48,7 +75,7 @@ async function main() {
 }
 
 main().catch((err) => {
-  console.error(`Error connecting to MongoDB at ${mongoUrl}`);
+  console.error(`Error connecting to MongoDB at ${sanitizeMongoUrl(resolvedMongoUrl)}`);
   console.error('Set the MONGO_URL or MONGO_URI environment variable to your MongoDB Atlas connection string.');
   console.error(err.message);
   process.exit(1);
@@ -69,7 +96,14 @@ app.engine('ejs', ejs);
 app.use(session({
   secret: sessionSecret,
   resave: false,
-  saveUninitialized: true,
+  saveUninitialized: false,
+  store: MongoStore.create({
+    mongoUrl: resolvedMongoUrl,
+    touchAfter: 24 * 3600,
+    crypto: {
+      secret: sessionSecret,
+    },
+  }),
   cookie: {
     httpOnly: true,
     sameSite: 'lax',
