@@ -1,21 +1,155 @@
 <% layout("/layouts/boilerplate") %>
 
-<section class="hero">
-    <div class="hero-card">
-        <p class="hero-kicker">WanderLust</p>
-        <h1 class="hero-title">Find, share, and manage stays with a proper account flow.</h1>
-        <p class="hero-copy">
-            Create an account to add listings, log in to manage your stays, and leave reviews on places you love.
-        </p>
-
-        <div class="hero-actions">
-            <% if (currUser) { %>
-                <a href="/listings" class="btn btn-danger">Browse Listings</a>
-                <a href="/listings/new" class="btn btn-outline-dark">Add Listing</a>
-            <% } else { %>
-                <a href="/signup" class="btn btn-danger">Sign Up</a>
-                <a href="/login" class="btn btn-outline-dark">Login</a>
-            <% } %>
+<section class="home-shell">
+    <section class="air-hero">
+        <div class="air-hero-copy">
+            <p class="air-eyebrow">Stays, experiences, and hosting in one place</p>
+            <h1>Find your next stay with an Airbnb-style start.</h1>
+            <p class="air-subcopy">
+                Search inspiring places, explore standout categories, and list your own space with a polished booking-style flow.
+            </p>
         </div>
-    </div>
+
+        <div class="air-search-card">
+            <div class="air-search-tabs" role="tablist" aria-label="Search types">
+                <a href="/listings" class="air-search-tab is-active">Homes</a>
+                <a href="#experiences" class="air-search-tab">Experiences</a>
+                <a href="#services" class="air-search-tab">Services</a>
+            </div>
+
+            <div class="air-search-grid">
+                <div class="air-search-field">
+                    <span class="air-search-label">Where</span>
+                    <span class="air-search-value">Search destinations</span>
+                </div>
+                <div class="air-search-field">
+                    <span class="air-search-label">Check in</span>
+                    <span class="air-search-value">Add dates</span>
+                </div>
+                <div class="air-search-field">
+                    <span class="air-search-label">Check out</span>
+                    <span class="air-search-value">Add dates</span>
+                </div>
+                <div class="air-search-field air-search-field-guests">
+                    <div>
+                        <span class="air-search-label">Who</span>
+                        <span class="air-search-value">Add guests</span>
+                    </div>
+                    <a href="/listings" class="air-search-button">
+                        <i class="fa-solid fa-magnifying-glass"></i>
+                        <span>Search</span>
+                    </a>
+                </div>
+            </div>
+        </div>
+
+        <div class="air-hero-media">
+            <article class="air-feature-card air-feature-main">
+                <span class="air-badge">Guest favorite</span>
+                <h2>Beach escapes with design-led interiors</h2>
+                <p>From cliffside villas to city lofts, discover listings that feel curated instead of crowded.</p>
+            </article>
+            <article class="air-feature-card air-feature-side">
+                <p class="air-feature-kicker">Hosting made simple</p>
+                <h3>Turn your place into the next booked-out stay.</h3>
+            </article>
+        </div>
+    </section>
+
+    <section class="air-section" id="experiences">
+        <div class="air-section-heading">
+            <div>
+                <p class="air-section-kicker">Explore categories</p>
+                <h2>Browse the kinds of stays people actually look for.</h2>
+            </div>
+            <a href="/listings" class="air-text-link">See all listings</a>
+        </div>
+
+        <div class="air-category-grid">
+            <article class="air-category-card">
+                <i class="fa-solid fa-water-ladder"></i>
+                <h3>Amazing pools</h3>
+                <p>Resort-style homes with outdoor lounging and skyline views.</p>
+            </article>
+            <article class="air-category-card">
+                <i class="fa-solid fa-mountain-sun"></i>
+                <h3>Mountain cabins</h3>
+                <p>Quiet hideaways for long weekends, hikes, and cold mornings.</p>
+            </article>
+            <article class="air-category-card">
+                <i class="fa-solid fa-city"></i>
+                <h3>City breaks</h3>
+                <p>Stylish apartments close to food, culture, and nightlife.</p>
+            </article>
+            <article class="air-category-card">
+                <i class="fa-solid fa-umbrella-beach"></i>
+                <h3>Beachfront</h3>
+                <p>Wake up to sea views, slow afternoons, and sunset walks.</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="air-section" id="services">
+        <div class="air-section-heading">
+            <div>
+                <p class="air-section-kicker">Inspiration for your next trip</p>
+                <h2>Popular destinations travelers keep coming back to.</h2>
+            </div>
+        </div>
+
+        <div class="air-destination-grid">
+            <article class="air-destination-card air-destination-card-large">
+                <span class="air-destination-pill">Trending now</span>
+                <h3>Goa</h3>
+                <p>Beach houses, boutique villas, and easy weekend plans.</p>
+            </article>
+            <article class="air-destination-card">
+                <h3>Jaipur</h3>
+                <p>Heritage stays with courtyards and warm evening rooftops.</p>
+            </article>
+            <article class="air-destination-card">
+                <h3>Manali</h3>
+                <p>Cabins, valley views, and mountain air that resets everything.</p>
+            </article>
+            <article class="air-destination-card">
+                <h3>Mumbai</h3>
+                <p>Compact city stays with premium access to the action.</p>
+            </article>
+        </div>
+    </section>
+
+    <section class="air-section air-hosting-panel">
+        <div>
+            <p class="air-section-kicker">Become a host</p>
+            <h2>It’s easy to put your place on WanderLust.</h2>
+            <p class="air-hosting-copy">
+                Add your first listing, upload images, manage availability-style details, and start building your own hospitality brand.
+            </p>
+
+            <div class="air-actions">
+                <% if (currUser) { %>
+                    <a href="/listings/new" class="air-primary-link">Start hosting</a>
+                    <a href="/listings" class="air-secondary-link">Browse stays</a>
+                <% } else { %>
+                    <a href="/signup" class="air-primary-link">Create account</a>
+                    <a href="/login" class="air-secondary-link">Log in</a>
+                <% } %>
+            </div>
+        </div>
+
+        <div class="air-hosting-stats">
+            <article>
+                <strong>100+</strong>
+                <span>Curated stay ideas</span>
+            </article>
+            <article>
+                <strong>Flexible</strong>
+                <span>Host your way, manage your own listings</span>
+            </article>
+            <article>
+                <strong>Simple</strong>
+                <span>Account flow, reviews, maps, and image uploads</span>
+            </article>
+        </div>
+    </section>
 </section>

@@ -24,6 +24,13 @@ module.exports.listingSchema = Joi.object({
         'string.empty': 'Country is required',
         'any.required': 'Country is required',
     }),
+    latitude: Joi.alternatives()
+        .try(Joi.number(), Joi.string().trim().allow(''))
+        .optional(),
+    longitude: Joi.alternatives()
+        .try(Joi.number(), Joi.string().trim().allow(''))
+        .optional(),
+    mapDisplayName: Joi.string().trim().allow('').optional(),
 });
 
 

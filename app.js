@@ -17,7 +17,7 @@ const listingRouter = require('./routes/listing');
 const reviewRouter = require('./routes/review');
 const userRouter = require('./routes/user');
 
-const mongoUrl = process.env.MONGO_URL || 'mongodb://127.0.0.1:27017/Wanderlust';
+const mongoUrl = process.env.MONGO_URL || process.env.MONGO_URI;
 const port = process.env.PORT || 3000;
 const sessionSecret = process.env.SESSION_SECRET || 'devsecret123';
 
@@ -49,25 +49,17 @@ async function main() {
 
 main().catch((err) => {
   console.error(`Error connecting to MongoDB at ${mongoUrl}`);
-  console.error('Start MongoDB locally or set the MONGO_URL environment variable.');
+  console.error('Set the MONGO_URL or MONGO_URI environment variable to your MongoDB Atlas connection string.');
   console.error(err.message);
   process.exit(1);
 });
 
-app.get('/testlistenings', wrapAsync(async(req,res) => {
-  const Listing = require('./models/listings');
-  const samplelisting = new Listing ({
-    title : "Beautiful Beach House",
-    description : "A stunning beach house with breathtaking ocean views, perfect for a relaxing getaway.",
-    // image : "https://images.unsplash.com/photo-1506744038136-46273834b3fb?ixlib=rb-4.0.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80",
-    price : 500,
-    Location : "Malibu",
-    Country : "USA",
-  });
-  await samplelisting.save();
-  console.log("Sample listing saved to database");
-  res.send("Sample listing saved to database");
-}));
+if (!mongoUrl) {
+  console.error('Missing MongoDB connection string.');
+  console.error('Set the MONGO_URL or MONGO_URI environment variable to your MongoDB Atlas connection string.');
+  process.exit(1);
+}
+
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));
 app.use(express.static(path.join(__dirname, 'public')));

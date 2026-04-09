@@ -1,11 +1,46 @@
 <% layout("/layouts/boilerplate") %>
 
-    <body>
-        <!-- <h3>All Listings</h3> -->
-        <!-- <form method="GET"  action="/listings/new">
-        <button>Create New Listing</button>
-    </form> -->
+<section class="listing-index-shell">
+    <div class="listing-index-header">
+        <div>
+            <p class="listing-index-kicker">Explore stays</p>
+            <h1 class="listing-index-title">Find listings faster with search.</h1>
+        </div>
 
+        <form action="/listings" method="GET" class="listing-search-form">
+            <label for="listing-search" class="visually-hidden">Search listings</label>
+            <input
+                id="listing-search"
+                type="search"
+                name="q"
+                value="<%= searchTerm || '' %>"
+                placeholder="Search by title, location, country, or description"
+                class="listing-search-input"
+            >
+            <button type="submit" class="listing-search-submit">
+                <i class="fa-solid fa-magnifying-glass"></i>
+                <span>Search</span>
+            </button>
+            <% if (searchTerm) { %>
+                <a href="/listings" class="listing-search-clear">Clear</a>
+            <% } %>
+        </form>
+    </div>
+
+    <% if (searchTerm) { %>
+        <p class="listing-search-results">
+            Showing <strong><%= alllistings.length %></strong> result<%= alllistings.length === 1 ? '' : 's' %> for
+            "<%= searchTerm %>"
+        </p>
+    <% } %>
+
+    <% if (alllistings.length === 0) { %>
+        <section class="listing-empty-state">
+            <h2>No listings matched your search.</h2>
+            <p>Try a different keyword, city, country, or listing title.</p>
+            <a href="/listings" class="listing-search-clear">View all listings</a>
+        </section>
+    <% } else { %>
         <div class="row row-cols-lg-3 row-cols-md-2 row-cols-sm-1 g-4">
             <% for(let listing of alllistings) { %>
                 <% const imageUrl=listing.image && listing.image.url ? listing.image.url
@@ -27,7 +62,7 @@
 
                         </div>
                     </a>
-                    <% } %>
+            <% } %>
         </div>
-
-    </body>
+    <% } %>
+</section>

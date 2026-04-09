@@ -7,8 +7,23 @@ const defaultImageUrl =
   'https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRI69IS84PGeSJDInvyhd8IPU8_1v3iQU0DeA&s';
 
 module.exports.index = async (req, res) => {
-  const alllistings = await Listing.find({});
-  res.render('./listings/index.ejs', { alllistings });
+  const searchTerm = typeof req.query.q === 'string' ? req.query.q.trim() : '';
+  const filters = {
+    owner: { $exists: true, $ne: null },
+  };
+
+  if (searchTerm) {
+    filters.$or = [
+      { title: { $regex: searchTerm, $options: 'i' } },
+      { location: { $regex: searchTerm, $options: 'i' } },
+      { country: { $regex: searchTerm, $options: 'i' } },
+      { description: { $regex: searchTerm, $options: 'i' } },
+      { mapDisplayName: { $regex: searchTerm, $options: 'i' } },
+    ];
+  }
+
+  const alllistings = await Listing.find(filters).sort({ _id: -1 });
+  res.render('./listings/index.ejs', { alllistings, searchTerm });
 };
 
 module.exports.renderNewForm = (req, res) => {
@@ -21,7 +36,10 @@ module.exports.showListing = async (req, res) => {
     throw new ExpressError('Listing not found', 404);
   }
 
-  const foundListing = await Listing.findById(id)
+  const foundListing = await Listing.findOne({
+    _id: id,
+    owner: { $exists: true, $ne: null },
+  })
     .populate('owner')
     .populate({
       path: 'reviews',
