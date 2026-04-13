@@ -39,7 +39,7 @@ module.exports.reviewSchema = Joi.object({
         rating: Joi.number().required().min(1).max(5).messages({
             'number': 'Rating must be a valid number',
         }),
-    comment: Joi.string().required().messages({
+        comment: Joi.string().required().messages({
             'string.empty': 'Comment is required',
         }),
     }),
