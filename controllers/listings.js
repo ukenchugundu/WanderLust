@@ -92,7 +92,9 @@ module.exports.createListing = async (req, res) => {
 
   await newListing.save();
   req.flash('success', 'Listing created successfully.');
-  res.redirect('/listings');
+  if (!res.headersSent) {
+    res.redirect('/listings');
+  }
 };
 
 module.exports.renderEditForm = async (req, res) => {
@@ -154,7 +156,9 @@ module.exports.updateListing = async (req, res) => {
   }
 
   req.flash('success', 'Listing updated successfully.');
-  res.redirect(`/listings/${id}`);
+  if (!res.headersSent) {
+    res.redirect(`/listings/${id}`);
+  }
 };
 
 module.exports.deleteListing = async (req, res) => {
@@ -166,5 +170,7 @@ module.exports.deleteListing = async (req, res) => {
   }
 
   req.flash('success', 'Listing deleted successfully.');
-  res.redirect('/listings');
+  if (!res.headersSent) {
+    res.redirect('/listings');
+  }
 };

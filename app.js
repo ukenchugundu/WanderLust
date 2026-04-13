@@ -206,6 +206,12 @@ app.all('/{*splat}', (req, res, next) => {
 
 // Custom middleware for handling errors must come after routes.
 app.use((err, req, res, next) => {
+  // Prevent multiple error responses
+  if (res.headersSent) {
+    console.error('Headers already sent, cannot send error response:', err.message);
+    return;
+  }
+
   let { statusCode = 500, message = "Something went wrong!" } = err;
   let { errorDetails = [] } = err;
 
@@ -239,5 +245,6 @@ app.use((err, req, res, next) => {
     message = 'Cloudinary cloud name is invalid. Update your .env with the real Cloudinary cloud name.';
   }
 
+  console.error('Error:', err.message);
   res.status(statusCode).render('error.ejs', { message, errorDetails });
 });

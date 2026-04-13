@@ -15,7 +15,7 @@ const upload = multer({
   },
   fileFilter(req, file, cb) {
     if (!file.mimetype.startsWith('image/')) {
-      return cb(new ExpressError('Please upload a valid image file.', 400));
+      return cb(new Error('Please upload a valid image file.'), false);
     }
     cb(null, true);
   },
