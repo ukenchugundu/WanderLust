@@ -34,9 +34,24 @@ module.exports.renderLoginForm = (req, res) => {
 
 module.exports.login = (req, res) => {
   if (res.headersSent) return;
-  req.flash('success', `Welcome to WanderLust ${req.user.username}!`);
+
+  if (!req.user) {
+    req.flash('error', 'Login could not be completed. Please try again.');
+    return res.redirect('/login');
+  }
+
+  const username =
+    typeof req.user.username === 'string' && req.user.username.trim()
+      ? req.user.username.trim()
+      : 'traveler';
+
+  req.flash('success', `Welcome to WanderLust ${username}!`);
   const redirectUrl = res.locals.redirectUrl || '/listings';
-  delete req.session.redirectUrl;
+
+  if (req.session) {
+    delete req.session.redirectUrl;
+  }
+
   res.redirect(redirectUrl);
 };
 
