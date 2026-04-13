@@ -8,7 +8,6 @@ const methodoverride = require('method-override');
 const ejs = require('ejs-mate');
 const session = require('express-session');
 const MongoStore = require('connect-mongo');
-const flash = require('connect-flash');
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const wrapAsync = require('./utils/WrapAsync');
@@ -18,9 +17,27 @@ const listingRouter = require('./routes/listing');
 const reviewRouter = require('./routes/review');
 const userRouter = require('./routes/user');
 
-const mongoUrl = process.env.MONGO_URL || process.env.MONGO_URI;
+const stripWrappingQuotes = (value) => {
+  if (typeof value !== 'string') {
+    return value;
+  }
+
+  const trimmedValue = value.trim();
+  const hasMatchingDoubleQuotes =
+    trimmedValue.startsWith('"') && trimmedValue.endsWith('"');
+  const hasMatchingSingleQuotes =
+    trimmedValue.startsWith("'") && trimmedValue.endsWith("'");
+
+  if (hasMatchingDoubleQuotes || hasMatchingSingleQuotes) {
+    return trimmedValue.slice(1, -1);
+  }
+
+  return trimmedValue;
+};
+
+const mongoUrl = stripWrappingQuotes(process.env.MONGO_URL || process.env.MONGO_URI);
 const port = process.env.PORT || 3000;
-const sessionSecret = process.env.SESSION_SECRET || 'devsecret123';
+const sessionSecret = stripWrappingQuotes(process.env.SESSION_SECRET) || 'devsecret123';
 
 const sanitizeMongoUrl = (url = '') => {
   try {
@@ -70,6 +87,28 @@ const parseCookies = (cookieHeader = '') => {
       cookies[key] = decodeURIComponent(value);
       return cookies;
     }, {});
+};
+
+const normalizeFlashMessages = (flashMessages) => {
+  if (!flashMessages || typeof flashMessages !== 'object' || Array.isArray(flashMessages)) {
+    return {};
+  }
+
+  return Object.entries(flashMessages).reduce((sanitizedFlash, [type, messages]) => {
+    if (Array.isArray(messages)) {
+      const validMessages = messages.filter((message) => message != null);
+      if (validMessages.length > 0) {
+        sanitizedFlash[type] = validMessages;
+      }
+      return sanitizedFlash;
+    }
+
+    if (messages != null) {
+      sanitizedFlash[type] = [messages];
+    }
+
+    return sanitizedFlash;
+  }, {});
 };
 
 async function main() {
@@ -122,17 +161,22 @@ app.use(express.static(path.join(__dirname, 'public')));
 app.use(express.urlencoded({extended : true}));
 app.use(methodoverride('_method'));
 app.engine('ejs', ejs);
+const sessionStore = MongoStore.create({
+  mongoUrl: resolvedMongoUrl,
+  collectionName: 'sessions_v2',
+  touchAfter: 24 * 3600,
+  stringify: false,
+});
+
+sessionStore.on('error', (err) => {
+  console.error('Session store error:', err?.stack || err?.message || err);
+});
+
 app.use(session({
   secret: sessionSecret,
   resave: false,
   saveUninitialized: false,
-  store: MongoStore.create({
-    mongoUrl: resolvedMongoUrl,
-    touchAfter: 24 * 3600,
-    crypto: {
-      secret: sessionSecret,
-    },
-  }),
+  store: sessionStore,
   cookie: {
     httpOnly: true,
     sameSite: 'lax',
@@ -146,30 +190,41 @@ app.use((req, res, next) => {
     return;
   }
 
-  const flashData = req.session.flash;
-
-  if (!flashData || typeof flashData !== 'object' || Array.isArray(flashData)) {
-    req.session.flash = {};
-    next();
-    return;
+  if (req.session.flashMessages !== undefined) {
+    req.session.flashMessages = normalizeFlashMessages(req.session.flashMessages);
   }
-
-  req.session.flash = Object.entries(flashData).reduce((sanitizedFlash, [type, messages]) => {
-    if (Array.isArray(messages)) {
-      sanitizedFlash[type] = messages.filter((message) => message != null);
-      return sanitizedFlash;
-    }
-
-    if (messages != null) {
-      sanitizedFlash[type] = [messages];
-    }
-
-    return sanitizedFlash;
-  }, {});
 
   next();
 });
-app.use(flash());
+app.use((req, res, next) => {
+  req.flash = (type, message) => {
+    if (!req.session) {
+      return typeof type === 'undefined' ? {} : [];
+    }
+
+    const currentFlash = normalizeFlashMessages(req.session.flashMessages);
+
+    if (typeof type === 'undefined') {
+      req.session.flashMessages = {};
+      return currentFlash;
+    }
+
+    if (typeof message !== 'undefined') {
+      const nextMessages = Array.isArray(message) ? message : [message];
+      const bucket = Array.isArray(currentFlash[type]) ? currentFlash[type] : [];
+      currentFlash[type] = bucket.concat(nextMessages.filter((entry) => entry != null));
+      req.session.flashMessages = currentFlash;
+      return currentFlash[type].length;
+    }
+
+    const messages = Array.isArray(currentFlash[type]) ? currentFlash[type] : [];
+    delete currentFlash[type];
+    req.session.flashMessages = currentFlash;
+    return messages;
+  };
+
+  next();
+});
 app.use(passport.initialize());
 app.use(passport.session());
 passport.use(new LocalStrategy(User.authenticate()));
