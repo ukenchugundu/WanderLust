@@ -150,8 +150,19 @@ app.use((req, res, next) => {
   next();
 });
 app.use((req, res, next) => {
-  res.locals.success = req.flash('success') || [];
-  res.locals.error = req.flash('error') || [];
+  const successMessages = req.flash('success');
+  const errorMessages = req.flash('error');
+
+  res.locals.success = Array.isArray(successMessages)
+    ? successMessages
+    : successMessages
+      ? [successMessages]
+      : [];
+  res.locals.error = Array.isArray(errorMessages)
+    ? errorMessages
+    : errorMessages
+      ? [errorMessages]
+      : [];
   res.locals.currUser = req.user;
   next();
 });
@@ -212,7 +223,7 @@ app.use((err, req, res, next) => {
     return;
   }
 
-  let { statusCode = 500, message = "Something went wrong!" } = err;
+  let { statusCode = 500, message = "Something went wrong!" } = err || {};
   let { errorDetails = [] } = err;
 
   // Ensure errorDetails is always an array

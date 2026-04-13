@@ -1,13 +1,16 @@
-<% if (success && success.length) { %>
+<% const successMessages = Array.isArray(success) ? success : success ? [success] : []; %>
+<% const errorMessages = Array.isArray(error) ? error : error ? [error] : []; %>
+
+<% if (successMessages.length > 0) { %>
   <div class="alert alert-success alert-dismissible fade show mt-3" role="alert">
-    <%= success[0] %>
+    <%= successMessages[0] %>
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
   </div>
 <% } %>
 
-<% if (error && error.length) { %>
+<% if (errorMessages.length > 0) { %>
   <div class="alert alert-danger alert-dismissible fade show mt-3" role="alert">
-    <%= error[0] %>
+    <%= errorMessages[0] %>
     <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
   </div>
 <% } %>

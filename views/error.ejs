@@ -1,14 +1,15 @@
 <% layout("/layouts/boilerplate") %>
+<% const details = Array.isArray(errorDetails) ? errorDetails : errorDetails ? [errorDetails] : []; %>
 
     <div class="row mt-3">
         <div class="col-8 offset-2">
             <div class="alert alert-danger" role="alert">
                 <h4 class="alert-heading"><%= message %></h4>
 
-                <% if (errorDetails && errorDetails.length) { %>
+                <% if (details.length > 0) { %>
                     <hr>
                     <ul class="mb-0">
-                        <% errorDetails.forEach((detail) => { %>
+                        <% details.forEach((detail) => { %>
                             <li><%= detail %></li>
                         <% }) %>
                     </ul>
