@@ -249,9 +249,17 @@ app.all('/{*splat}', (req, res, next) => {
 app.use((err, req, res, next) => {
   // Prevent multiple error responses
   if (res.headersSent) {
-    console.error('Headers already sent, cannot send error response:', err?.stack || err?.message || err);
+    console.error(
+      `Headers already sent for ${req.method} ${req.originalUrl}, cannot send error response:`,
+      err?.stack || err?.message || err
+    );
     return;
   }
+
+  console.error(
+    `Unhandled error during ${req.method} ${req.originalUrl}:`,
+    err?.stack || err?.message || err
+  );
 
   let { statusCode = 500, message = "Something went wrong!" } = err || {};
   let { errorDetails = [] } = err;

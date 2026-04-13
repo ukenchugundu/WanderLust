@@ -32,27 +32,37 @@ module.exports.renderLoginForm = (req, res) => {
   res.render('users/login.ejs');
 };
 
-module.exports.login = (req, res) => {
-  if (res.headersSent) return;
+module.exports.login = (req, res, next) => {
+  passport.authenticate('local', (authErr, user, info = {}) => {
+    if (authErr) {
+      return next(authErr);
+    }
 
-  if (!req.user) {
-    req.flash('error', 'Login could not be completed. Please try again.');
-    return res.redirect('/login');
-  }
+    if (!user) {
+      req.flash('error', info.message || 'Invalid username or password.');
+      return res.redirect('/login');
+    }
 
-  const username =
-    typeof req.user.username === 'string' && req.user.username.trim()
-      ? req.user.username.trim()
-      : 'traveler';
+    req.logIn(user, (loginErr) => {
+      if (loginErr) {
+        return next(loginErr);
+      }
 
-  req.flash('success', `Welcome to WanderLust ${username}!`);
-  const redirectUrl = res.locals.redirectUrl || '/listings';
+      const username =
+        typeof user.username === 'string' && user.username.trim()
+          ? user.username.trim()
+          : 'traveler';
+      const redirectUrl = res.locals.redirectUrl || '/listings';
 
-  if (req.session) {
-    delete req.session.redirectUrl;
-  }
+      req.flash('success', `Welcome to WanderLust ${username}!`);
 
-  res.redirect(redirectUrl);
+      if (req.session) {
+        delete req.session.redirectUrl;
+      }
+
+      return res.redirect(redirectUrl);
+    });
+  })(req, res, next);
 };
 
 module.exports.logout = (req, res, next) => {
