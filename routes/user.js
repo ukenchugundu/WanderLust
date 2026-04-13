@@ -1,4 +1,5 @@
 const express = require('express');
+const passport = require('passport');
 const { saveRedirectUrl } = require('../middleware');
 const userController = require('../controllers/users');
 
@@ -14,7 +15,7 @@ router
   .get(userController.renderLoginForm)
   .post(
     saveRedirectUrl,
-    userController.authenticateUser,
+    passport.authenticate('local', { failureRedirect: '/login', failureFlash: true }),
     userController.login
   );
 

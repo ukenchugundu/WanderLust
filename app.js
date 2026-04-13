@@ -30,6 +30,13 @@ const sanitizeMongoUrl = (url = '') => {
   }
 };
 
+const isMongoServerSelectionError = (err) => {
+  return (
+    err?.name === 'MongooseServerSelectionError' ||
+    err?.name === 'MongoServerSelectionError'
+  );
+};
+
 const ensureDatabaseName = (url) => {
   if (!url) {
     return url;
@@ -66,7 +73,22 @@ const parseCookies = (cookieHeader = '') => {
 };
 
 async function main() {
-  await mongoose.connect(resolvedMongoUrl);
+  const isAtlas = resolvedMongoUrl.startsWith('mongodb+srv://');
+  const options = isAtlas ? {
+    tls: true,
+    tlsAllowInvalidCertificates: false,
+    tlsAllowInvalidHostnames: false,
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+    maxPoolSize: 10,
+    bufferCommands: false,
+  } : {
+    serverSelectionTimeoutMS: 5000,
+    socketTimeoutMS: 45000,
+    maxPoolSize: 10,
+    bufferCommands: false,
+  };
+  await mongoose.connect(resolvedMongoUrl, options);
   console.log('Connected to MongoDB');
 
   app.listen(port,() => {
@@ -74,18 +96,25 @@ async function main() {
   });
 }
 
-main().catch((err) => {
-  console.error(`Error connecting to MongoDB at ${sanitizeMongoUrl(resolvedMongoUrl)}`);
-  console.error('Set the MONGO_URL or MONGO_URI environment variable to your MongoDB Atlas connection string.');
-  console.error(err.message);
-  process.exit(1);
-});
-
 if (!mongoUrl) {
   console.error('Missing MongoDB connection string.');
   console.error('Set the MONGO_URL or MONGO_URI environment variable to your MongoDB Atlas connection string.');
   process.exit(1);
 }
+
+main().catch((err) => {
+  console.error(`Error connecting to MongoDB at ${sanitizeMongoUrl(resolvedMongoUrl)}`);
+
+  if (isMongoServerSelectionError(err)) {
+    console.error('Could not reach your MongoDB Atlas cluster.');
+    console.error('If you are using Atlas, add your current IP address to Network Access and confirm the database user/password are correct.');
+  } else {
+    console.error('Check that MONGO_URL or MONGO_URI contains a valid MongoDB connection string.');
+  }
+
+  console.error(err.message);
+  process.exit(1);
+});
 
 app.set('view engine', 'ejs');
 app.set('views', path.join(__dirname, 'views'));

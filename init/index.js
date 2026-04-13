@@ -1,3 +1,5 @@
+require('dotenv').config({ quiet: true });
+
 const mongoose = require('mongoose');
 const initdata = require('./data.js');
 const listing = require('../models/listings');
