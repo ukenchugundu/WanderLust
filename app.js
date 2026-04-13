@@ -139,6 +139,36 @@ app.use(session({
     maxAge: 7 * 24 * 60 * 60 * 1000,
   },
 }));
+
+app.use((req, res, next) => {
+  if (!req.session) {
+    next();
+    return;
+  }
+
+  const flashData = req.session.flash;
+
+  if (!flashData || typeof flashData !== 'object' || Array.isArray(flashData)) {
+    req.session.flash = {};
+    next();
+    return;
+  }
+
+  req.session.flash = Object.entries(flashData).reduce((sanitizedFlash, [type, messages]) => {
+    if (Array.isArray(messages)) {
+      sanitizedFlash[type] = messages.filter((message) => message != null);
+      return sanitizedFlash;
+    }
+
+    if (messages != null) {
+      sanitizedFlash[type] = [messages];
+    }
+
+    return sanitizedFlash;
+  }, {});
+
+  next();
+});
 app.use(flash());
 app.use(passport.initialize());
 app.use(passport.session());
@@ -219,7 +249,7 @@ app.all('/{*splat}', (req, res, next) => {
 app.use((err, req, res, next) => {
   // Prevent multiple error responses
   if (res.headersSent) {
-    console.error('Headers already sent, cannot send error response:', err.message);
+    console.error('Headers already sent, cannot send error response:', err?.stack || err?.message || err);
     return;
   }
 
