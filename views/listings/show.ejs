@@ -3,7 +3,7 @@
     <body>
         <% const imageUrl=listing.image && listing.image.url ? listing.image.url
             : "https://encrypted-tbn0.gstatic.com/images?q=tbn:ANd9GcRI69IS84PGeSJDInvyhd8IPU8_1v3iQU0DeA&s" ; %>
-            <div class="show-card-wrapper">
+            <div class="show-card-wrapper" data-realtime-listing="<%= listing._id %>">
                 <h3 class="show-heading">
                     <%= listing.title %>
                 </h3>
@@ -30,6 +30,11 @@
 
                 <div class="show-actions">
                     <a href="/listings" class="btn btn-dark">Back to Listings</a>
+                    <% if (currUser) { %>
+                        <form method="POST" action="/favorites/<%= listing._id %>/toggle" class="d-inline">
+                            <button class="btn btn-outline-danger">Save to Favorites</button>
+                        </form>
+                    <% } %>
                     <% if (isListingOwner) { %>
                         <a href="/listings/<%= listing._id %>/edit" class="btn btn-outline-dark">Edit Listing</a>
 
@@ -38,6 +43,37 @@
                         </form>
                     <% } %>
                 </div>
+
+                <% if (currUser && (!listing.owner || !currUser._id.equals(listing.owner._id))) { %>
+                    <section class="booking-panel">
+                        <h4>Request a stay</h4>
+                        <p class="text-muted mb-0" data-availability-status>Checking live availability...</p>
+                        <form action="/listings/<%= listing._id %>/bookings" method="POST" class="row g-3" data-booking-form data-nightly-price="<%= listing.price %>">
+                            <div class="col-md-6"><label for="checkIn" class="form-label">Check in</label><input id="checkIn" name="checkIn" type="date" class="form-control" data-booking-date required></div>
+                            <div class="col-md-6"><label for="checkOut" class="form-label">Check out</label><input id="checkOut" name="checkOut" type="date" class="form-control" data-booking-date required></div>
+                            <div class="col-md-4"><label for="guests" class="form-label">Guests</label><input id="guests" name="guests" type="number" min="1" value="1" class="form-control" data-booking-guests required></div>
+                            <div class="col-md-8"><label for="message" class="form-label">Message</label><input id="message" name="message" maxlength="500" class="form-control" placeholder="Tell the host about your trip"></div>
+                            <div class="col-12 booking-summary" data-booking-summary>Select dates to see your estimated total.</div>
+                            <div class="col-12"><button class="btn btn-dark booking-submit" data-booking-submit>Send booking request <i class="fa-solid fa-arrow-right"></i></button></div>
+                        </form>
+                    </section>
+                <% } %>
+
+                <section class="attractions-panel" data-attractions data-location="<%= listing.location %>" data-country="<%= listing.country %>">
+                    <div class="attractions-heading"><div><p class="listing-map-kicker mb-2">Make the most of your stay</p><h4>Nearby things to do</h4></div><span class="listing-map-badge">Curated for guests</span></div>
+                    <div class="attractions-grid" data-attractions-grid></div>
+                </section>
+
+                <% if (currUser) { %>
+                    <section class="booking-panel">
+                        <h4>Live conversation</h4>
+                        <ul class="chat-messages" data-chat-messages aria-live="polite"></ul>
+                        <form data-chat-form class="d-flex gap-2">
+                            <input data-chat-input class="form-control" maxlength="500" placeholder="Message about this stay" required>
+                            <button class="btn btn-dark">Send</button>
+                        </form>
+                    </section>
+                <% } %>
 
                 <section class="listing-map-section" aria-labelledby="listing-map-title">
                     <div class="listing-map-header">

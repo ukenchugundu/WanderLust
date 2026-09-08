@@ -9,11 +9,13 @@ const apiKey = process.env.CLOUDINARY_API_KEY || process.env.API_KEY;
 const apiSecret =
   process.env.CLOUDINARY_API_SECRET || process.env.SECRET_KEY;
 
-cloudinary.config({
-  cloud_name: cloudName,
-  api_key: apiKey,
-  api_secret: apiSecret,
-});
+if (!process.env.CLOUDINARY_URL && cloudName && apiKey && apiSecret) {
+  cloudinary.config({
+    cloud_name: cloudName,
+    api_key: apiKey,
+    api_secret: apiSecret,
+  });
+}
 
 const storage = new CloudinaryStorage({
   cloudinary,

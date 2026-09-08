@@ -1,6 +1,8 @@
 require('dotenv').config({ quiet: true });
 
 const express = require('express');
+const http = require('http');
+const { Server } = require('socket.io');
 const app = express();
 const mongoose = require('mongoose');
 const path = require('path');
@@ -16,6 +18,9 @@ const User = require('./models/user');
 const listingRouter = require('./routes/listing');
 const reviewRouter = require('./routes/review');
 const userRouter = require('./routes/user');
+const accountRouter = require('./routes/account');
+const infoRouter = require('./routes/info');
+const configureRealtime = require('./realtime');
 
 const stripWrappingQuotes = (value) => {
   if (typeof value !== 'string') {
@@ -130,7 +135,14 @@ async function main() {
   await mongoose.connect(resolvedMongoUrl, options);
   console.log('Connected to MongoDB');
 
-  app.listen(port,() => {
+  const server = http.createServer(app);
+  const io = new Server(server, {
+    cors: { origin: false },
+  });
+  configureRealtime(io, sessionMiddleware, passport);
+  app.set('io', io);
+
+  server.listen(port,() => {
     console.log(`Server is running on port ${port}`);
   });
 }
@@ -172,7 +184,7 @@ sessionStore.on('error', (err) => {
   console.error('Session store error:', err?.stack || err?.message || err);
 });
 
-app.use(session({
+const sessionMiddleware = session({
   secret: sessionSecret,
   resave: false,
   saveUninitialized: false,
@@ -182,7 +194,8 @@ app.use(session({
     sameSite: 'lax',
     maxAge: 7 * 24 * 60 * 60 * 1000,
   },
-}));
+});
+app.use(sessionMiddleware);
 
 app.use((req, res, next) => {
   if (!req.session) {
@@ -254,7 +267,9 @@ app.use((req, res, next) => {
 
 app.use('/listings', listingRouter);
 app.use('/listings/:id/reviews', reviewRouter);
+app.use('/', accountRouter);
 app.use('/', userRouter);
+app.use('/', infoRouter);
 
 app.get('/', (req,res) => {
   res.render('home.ejs');

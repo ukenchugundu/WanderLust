@@ -8,9 +8,11 @@ const defaultImageUrl =
 
 module.exports.index = async (req, res) => {
   const searchTerm = typeof req.query.q === 'string' ? req.query.q.trim() : '';
-  const filters = {
-    owner: { $exists: true, $ne: null },
-  };
+  const page = Math.max(Number.parseInt(req.query.page, 10) || 1, 1);
+  const pageSize = 9;
+  const minPrice = Number(req.query.minPrice);
+  const maxPrice = Number(req.query.maxPrice);
+  const filters = {};
 
   if (searchTerm) {
     filters.$or = [
@@ -22,8 +24,28 @@ module.exports.index = async (req, res) => {
     ];
   }
 
-  const alllistings = await Listing.find(filters).sort({ _id: -1 });
-  res.render('./listings/index.ejs', { alllistings, searchTerm });
+  if (Number.isFinite(minPrice) && minPrice >= 0) {
+    filters.price = { ...(filters.price || {}), $gte: minPrice };
+  }
+  if (Number.isFinite(maxPrice) && maxPrice >= 0) {
+    filters.price = { ...(filters.price || {}), $lte: maxPrice };
+  }
+
+  const [alllistings, totalListings] = await Promise.all([
+    Listing.find(filters).sort({ _id: -1 }).skip((page - 1) * pageSize).limit(pageSize),
+    Listing.countDocuments(filters),
+  ]);
+  const totalPages = Math.max(Math.ceil(totalListings / pageSize), 1);
+  const currentPage = Math.min(page, totalPages);
+  res.render('./listings/index.ejs', {
+    alllistings,
+    searchTerm,
+    minPrice: req.query.minPrice || '',
+    maxPrice: req.query.maxPrice || '',
+    page: currentPage,
+    totalPages,
+    totalListings,
+  });
 };
 
 module.exports.renderNewForm = (req, res) => {
@@ -38,7 +60,6 @@ module.exports.showListing = async (req, res) => {
 
   const foundListing = await Listing.findOne({
     _id: id,
-    owner: { $exists: true, $ne: null },
   })
     .populate('owner')
     .populate({
@@ -56,14 +77,14 @@ module.exports.showListing = async (req, res) => {
 };
 
 module.exports.createListing = async (req, res) => {
-  const { title, description, price, location, country, latitude, longitude, mapDisplayName } = req.body;
+  const { title, description, price, location, country, latitude, longitude, mapDisplayName, imageUrl } = req.body;
   const uploadedImage = req.file
     ? {
         url: req.file.path,
         filename: req.file.filename,
       }
     : {
-        url: defaultImageUrl,
+        url: typeof imageUrl === 'string' && imageUrl.trim() ? imageUrl.trim() : defaultImageUrl,
       };
 
   const newListing = new Listing({

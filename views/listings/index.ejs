@@ -17,6 +17,8 @@
                 placeholder="Search by title, location, country, or description"
                 class="listing-search-input"
             >
+            <input type="number" name="minPrice" min="0" step="any" value="<%= minPrice || '' %>" placeholder="Min price" class="listing-search-input">
+            <input type="number" name="maxPrice" min="0" step="any" value="<%= maxPrice || '' %>" placeholder="Max price" class="listing-search-input">
             <button type="submit" class="listing-search-submit">
                 <i class="fa-solid fa-magnifying-glass"></i>
                 <span>Search</span>
@@ -27,12 +29,11 @@
         </form>
     </div>
 
-    <% if (searchTerm) { %>
-        <p class="listing-search-results">
-            Showing <strong><%= alllistings.length %></strong> result<%= alllistings.length === 1 ? '' : 's' %> for
-            "<%= searchTerm %>"
-        </p>
-    <% } %>
+    <p class="listing-search-results">
+        Showing <strong><%= totalListings %></strong> listing<%= totalListings === 1 ? '' : 's' %>
+        <% if (searchTerm) { %> matching "<%= searchTerm %>"<% } %>
+        <% if (totalPages > 1) { %> · Page <strong><%= page %></strong> of <strong><%= totalPages %></strong><% } %>
+    </p>
 
     <% if (alllistings.length === 0) { %>
         <section class="listing-empty-state">
@@ -46,23 +47,35 @@
                 <% const imageUrl=listing.image && listing.image.url ? listing.image.url
                     : "https://images.unsplash.com/photo-1580587772039-8f66e15d3243?ixlib=rb-4.0.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80"
                     ; %>
-                    <a href="/listings/<%= listing._id %>" class="text-decoration-none">
-                        <div class="card" style="width: 20rem;">
-                            <img src="<%= imageUrl %>" class="card-img-top" alt="listings_images"
+                    <a href="/listings/<%= listing._id %>" class="listing-card-link">
+                        <article class="card listing-card">
+                            <div class="listing-card-image-wrap">
+                                <img src="<%= imageUrl %>" class="card-img-top" alt="<%= listing.title %>"
                                 onerror="this.onerror=null;this.src='https://images.unsplash.com/photo-1580587772039-8f66e15d3243?ixlib=rb-4.0.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8&auto=format&fit=crop&w=1200&q=80';">
-                                <div class="card-img-overlay"></div>
+                                <span class="listing-card-save" aria-hidden="true"><i class="fa-regular fa-heart"></i></span>
+                            </div>
                             <div class="card-body">
-                                <p class="card-text">
-                                    <%= listing.title %>
-                                </p>
-                                <p class="card-text">Price: &#8377; <%= listing.price.toLocaleString("en-IN") %> / night
-                                </p>
+                                <div class="listing-card-heading">
+                                    <h2><%= listing.title %></h2>
+                                    <span class="listing-card-rating"><i class="fa-solid fa-star"></i> New</span>
+                                </div>
+                                <p class="listing-card-location"><i class="fa-solid fa-location-dot"></i> <%= listing.location %>, <%= listing.country %></p>
+                                <p class="listing-card-price"><strong>&#8377; <%= listing.price.toLocaleString("en-IN") %></strong> night</p>
 
                             </div>
 
-                        </div>
+                        </article>
                     </a>
             <% } %>
         </div>
+        <% if (totalPages > 1) { %>
+            <nav aria-label="Listing page navigation" class="listing-pagination listing-pagination-bottom">
+                <% for (let pageNumber = 1; pageNumber <= totalPages; pageNumber++) { %>
+                    <a class="<%= pageNumber === page ? 'is-active' : '' %>" href="/listings?page=<%= pageNumber %>&q=<%= encodeURIComponent(searchTerm || '') %>&minPrice=<%= encodeURIComponent(minPrice || '') %>&maxPrice=<%= encodeURIComponent(maxPrice || '') %>"><%= pageNumber %></a>
+                <% } %>
+                <% if (page > 1) { %><a href="/listings?page=<%= page - 1 %>&q=<%= encodeURIComponent(searchTerm || '') %>&minPrice=<%= encodeURIComponent(minPrice || '') %>&maxPrice=<%= encodeURIComponent(maxPrice || '') %>">Previous</a><% } %>
+                <% if (page < totalPages) { %><a href="/listings?page=<%= page + 1 %>&q=<%= encodeURIComponent(searchTerm || '') %>&minPrice=<%= encodeURIComponent(minPrice || '') %>&maxPrice=<%= encodeURIComponent(maxPrice || '') %>">Next</a><% } %>
+            </nav>
+        <% } %>
     <% } %>
 </section>

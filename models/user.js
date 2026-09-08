@@ -12,6 +12,10 @@ const userSchema = new Schema({
     unique: true,
     trim: true,
   },
+  favorites: [{
+    type: Schema.Types.ObjectId,
+    ref: 'listing',
+  }],
 });
 
 userSchema.plugin(passportLocalMongoose);

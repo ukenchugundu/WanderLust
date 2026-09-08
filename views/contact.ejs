@@ -1,0 +1,14 @@
+<% layout('/layouts/boilerplate') %>
+<section class="contact-page">
+    <div class="contact-intro"><p class="air-eyebrow">We are listening</p><h1>Tell us where WanderLust can take you next.</h1><p>Questions about a stay, hosting, or a partnership? Send a note and our small team will get back to you.</p><div class="contact-details"><span><i class="fa-regular fa-clock"></i> Replies within one business day</span><span><i class="fa-solid fa-location-dot"></i> Remote, everywhere</span></div></div>
+    <div class="contact-form-panel">
+        <% if (sent) { %><div class="contact-success"><i class="fa-solid fa-circle-check"></i><h2>Message received.</h2><p>Thanks for reaching out. We will be in touch soon.</p><a href="/listings" class="info-link">Keep exploring <i class="fa-solid fa-arrow-right"></i></a></div><% } else { %>
+        <form action="/contact" method="POST" class="contact-form">
+            <div><label for="contact-name">Your name</label><input id="contact-name" name="name" required placeholder="What should we call you?"></div>
+            <div><label for="contact-email">Email address</label><input id="contact-email" name="email" type="email" required placeholder="you@example.com"></div>
+            <div><label for="contact-message">How can we help?</label><textarea id="contact-message" name="message" rows="6" required placeholder="Tell us a little about your question..."></textarea></div>
+            <button type="submit" class="wander-signup">Send message <i class="fa-solid fa-arrow-right"></i></button>
+        </form>
+        <% } %>
+    </div>
+</section>

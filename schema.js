@@ -24,6 +24,7 @@ module.exports.listingSchema = Joi.object({
         'string.empty': 'Country is required',
         'any.required': 'Country is required',
     }),
+    imageUrl: Joi.string().uri().allow('').optional(),
     latitude: Joi.alternatives()
         .try(Joi.number(), Joi.string().trim().allow(''))
         .optional(),
